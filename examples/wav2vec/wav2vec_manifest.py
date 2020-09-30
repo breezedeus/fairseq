@@ -27,6 +27,9 @@ def get_parser():
     return parser
 
 
+TARGET_SAMPLE_RATE = 8000
+
+
 def main(args):
     assert args.valid_percent >= 0 and args.valid_percent <= 1.
 
@@ -45,7 +48,10 @@ def main(args):
             if args.path_must_contain and args.path_must_contain not in file_path:
                 continue
 
-            frames = soundfile.info(fname).frames
+            info = soundfile.info(fname)
+            sample_rate = info.samplerate
+            assert sample_rate in (8000, 16000)
+            frames = info.frames * (TARGET_SAMPLE_RATE // sample_rate)
             dest = train_f if rand.random() > args.valid_percent else valid_f
             print('{}\t{}'.format(os.path.relpath(file_path, dir_path), frames), file=dest)
 

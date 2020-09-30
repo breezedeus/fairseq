@@ -9,6 +9,8 @@ import logging
 import numpy as np
 import sys
 
+import librosa
+import soundfile as sf
 import torch
 import torch.nn.functional as F
 
@@ -52,7 +54,12 @@ class RawAudioDataset(FairseqDataset):
             feats = feats.mean(-1)
 
         if curr_sample_rate != self.sample_rate:
-            raise Exception(f"sample rate: {curr_sample_rate}, need {self.sample_rate}")
+            # 8000 --> 16000
+            assert curr_sample_rate * 2 == self.sample_rate
+            feats = torch.from_numpy(
+                librosa.resample(feats.numpy(), curr_sample_rate, self.sample_rate)
+            )
+            # raise Exception(f"sample rate: {curr_sample_rate}, need {self.sample_rate}")
 
         assert feats.dim() == 1, feats.dim()
 
@@ -72,11 +79,7 @@ class RawAudioDataset(FairseqDataset):
         return wav[start:end]
 
     def collater(self, samples):
-        samples = [
-            s
-            for s in samples
-            if s["source"] is not None
-        ]
+        samples = [s for s in samples if s["source"] is not None]
         if len(samples) == 0:
             return {}
 
@@ -172,8 +175,6 @@ class FileAudioDataset(RawAudioDataset):
         logger.info(f"loaded {len(self.fnames)}, skipped {skipped} samples")
 
     def __getitem__(self, index):
-        import soundfile as sf
-
         fname = os.path.join(self.root_dir, self.fnames[index])
         wav, curr_sample_rate = sf.read(fname)
         feats = torch.from_numpy(wav).float()
