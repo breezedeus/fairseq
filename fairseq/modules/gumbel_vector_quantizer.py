@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) Facebook, Inc. and its affiliates.
 #
 # This source code is licensed under the MIT license found in the
@@ -144,22 +145,22 @@ class GumbelVectorQuantizer(nn.Module):
         bsz, tsz, fsz = x.shape
         x = x.reshape(-1, fsz)
         x = self.weight_proj(x)
-        x = x.view(bsz * tsz * self.groups, -1)
+        x = x.view(bsz * tsz * self.groups, -1)  # [bsz * tsz * groups, num_vars]
 
         _, k = x.max(-1)
         hard_x = (
             x.new_zeros(*x.shape)
             .scatter_(-1, k.view(-1, 1), 1.0)
             .view(bsz * tsz, self.groups, -1)
-        )
-        hard_probs = torch.mean(hard_x.float(), dim=0)
+        )  # [bsz * tsz, groups, num_vars]
+        hard_probs = torch.mean(hard_x.float(), dim=0)  # [groups, num_vars]
         result["code_perplexity"] = torch.exp(
             -torch.sum(hard_probs * torch.log(hard_probs + 1e-7), dim=-1)
         ).sum()
 
         avg_probs = torch.softmax(
             x.view(bsz * tsz, self.groups, -1).float(), dim=-1
-        ).mean(dim=0)
+        ).mean(dim=0)  # [groups, num_vars]
         result["prob_perplexity"] = torch.exp(
             -torch.sum(avg_probs * torch.log(avg_probs + 1e-7), dim=-1)
         ).sum()
@@ -171,7 +172,7 @@ class GumbelVectorQuantizer(nn.Module):
         else:
             x = hard_x
 
-        x = x.view(bsz * tsz, -1)
+        x = x.view(bsz * tsz, -1)  # [bsz * tsz, groups * num_vars]
 
         vars = self.vars
         if self.combine_groups:
@@ -185,10 +186,12 @@ class GumbelVectorQuantizer(nn.Module):
                 .detach()
             )
 
+        # 逐元素点乘：乘之前x还是离散值（0 or 1），乘之后就是从vars选出来的向量了
+        # resulting shape: [bsz * tsz, groups * num_vars, var_dim]
         x = x.unsqueeze(-1) * vars
         x = x.view(bsz * tsz, self.groups, self.num_vars, -1)
-        x = x.sum(-2)
-        x = x.view(bsz, tsz, -1)
+        x = x.sum(-2)  # [bsz * tsz, groups, var_dim]
+        x = x.view(bsz, tsz, -1)  # [bsz, tsz, groups * var_dim]，相当于把所有group下的向量拼接起来了
 
         if not self.time_first:
             x = x.transpose(1, 2)  # BTC -> BCT

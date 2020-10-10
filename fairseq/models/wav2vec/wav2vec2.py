@@ -514,9 +514,11 @@ class Wav2Vec2Model(BaseFairseqModel):
     def compute_preds(self, x, y, negatives):
 
         neg_is_pos = (y == negatives).all(-1)
-        y = y.unsqueeze(0)
-        targets = torch.cat([y, negatives], dim=0)
+        y = y.unsqueeze(0)  # [1, 64, 16, 256]
+        targets = torch.cat([y, negatives], dim=0)  # 1个正样本+100个负样本：[101, 64, 16, 256]
 
+        # x: [64, 16, 256], targets: [101, 64, 16, 256]
+        # resulting logits: [101, 64, 16]
         logits = torch.cosine_similarity(x.float(), targets.float(), dim=-1).type_as(x)
 
         logits /= self.logit_temp
@@ -540,7 +542,7 @@ class Wav2Vec2Model(BaseFairseqModel):
 
         features = features.transpose(1, 2)
         features = self.layer_norm(features)
-        unmasked_features = features.clone()
+        unmasked_features = features.clone()  # (B, T, C)
 
         if padding_mask is not None:
             extra = padding_mask.size(1) % features.size(1)
@@ -582,7 +584,7 @@ class Wav2Vec2Model(BaseFairseqModel):
             y = unmasked_features
             mask_indices = None
 
-        x = self.encoder(x, padding_mask=padding_mask)
+        x = self.encoder(x, padding_mask=padding_mask)  # (B, T, C): [64, 60, 768]
 
         if features_only:
             return {"x": x, "padding_mask": padding_mask}
@@ -603,7 +605,7 @@ class Wav2Vec2Model(BaseFairseqModel):
                 negs = self.project_q(negs)
 
             else:
-                negs, _ = self.sample_negatives(y, y.size(1))
+                negs, _ = self.sample_negatives(y, y.size(1))  # [100, 64, 16, 256]
 
             if self.codebook_negatives > 0:
                 cb_negs = self.quantizer.sample_from_codebook(
