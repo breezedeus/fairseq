@@ -31,8 +31,8 @@ prepare-asr:
 
 finetune-asr:
 	python train.py $(OUT_DATA_DIR) --save-dir $(OUT_DATA_DIR)/finetuned-asr \
-		--fp16 --num-workers 6 --update-freq 24 --sample-rate 8000 \
-		--w2v-path $(PRETRAIN_MODEL_FP) \
+		--fp16 --num-workers 10 --update-freq 24 --sample-rate 8000 \
+		--w2v-path $(PRETRAIN_MODEL_FP) --tensorboard-logdir runs \
 		--post-process letter --valid-subset valid --no-epoch-checkpoints --best-checkpoint-metric wer \
 		--max-update 80000 --sentence-avg --task audio_pretraining --arch wav2vec_ctc \
 		--labels ltr --apply-mask --mask-selection static --mask-other 0 --mask-length 10 --mask-prob 0.5 --layerdrop 0.1 \
