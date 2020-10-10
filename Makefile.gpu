@@ -1,6 +1,5 @@
 # ein-gpu1
 WAV_DIR = /home/ein/jinlong/speech_data/holybell
-#WAV_DIR = /Users/king/Documents/Ein/Codes/transfer-learning/data/audio/holybell-sample
 OUT_DATA_DIR = data
 PRETRAIN_MODEL_FP = models/checkpoint_last.pt
 
@@ -28,7 +27,7 @@ prepare-asr:
 		--output-tsv $(OUT_DATA_DIR)/valid-clean.tsv --output-dir $(OUT_DATA_DIR) --output-name valid
 #	mv $(OUT_DATA_DIR)/valid-clean.tsv $(OUT_DATA_DIR)/valid.tsv
 	python examples/wav2vec/build_vocab.py --base-vocab-fp $(OUT_DATA_DIR)/base_vocab.txt \
-		--corpus-text-fp $(OUT_DATA_DIR)/train-text.txt -o $(OUT_DATA_DIR)/dict.ltr.txt
+		--corpus-text-fp $(WAV_DIR)/train-text.txt -o $(OUT_DATA_DIR)/dict.ltr.txt
 
 finetune-asr:
 	python train.py $(OUT_DATA_DIR) --save-dir $(OUT_DATA_DIR)/finetuned-asr \
