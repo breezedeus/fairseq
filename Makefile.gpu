@@ -1,15 +1,15 @@
 # ein-gpu1
-#WAV_DIR = /home/ein/jinlong/speech_data/holybell-sample
-WAV_DIR = /Users/king/Documents/Ein/Codes/transfer-learning/data/audio/holybell-sample
+WAV_DIR = /home/ein/jinlong/speech_data/holybell
+#WAV_DIR = /Users/king/Documents/Ein/Codes/transfer-learning/data/audio/holybell-sample
 OUT_DATA_DIR = data
-PRETRAIN_MODEL_FP = pretrained/checkpoint_best.pt
+PRETRAIN_MODEL_FP = models/checkpoint_last.pt
 
 gen-manifest:
-	python examples/wav2vec/wav2vec_manifest.py $(WAV_DIR) --dest $(OUT_DATA_DIR) --ext wav --valid-percent 0.1
+	python examples/wav2vec/wav2vec_manifest.py $(WAV_DIR) --dest $(OUT_DATA_DIR) --ext wav --valid-percent 0.02
 
 pretrain:
 	python train.py $(OUT_DATA_DIR) --save-dir models --task audio_pretraining --criterion wav2vec --arch wav2vec2 \
-		--num-workers 0 --encoder-layers 4 --update-freq 64 --sample-rate 8000 \
+		--fp16 --num-workers 6 --encoder-layers 4 --update-freq 64 --sample-rate 8000 \
 		--log-keys '["prob_perplexity","code_perplexity","temp"]' --quantize-targets --extractor-mode default \
 		--conv-feature-layers '[(512, 10, 5)] + [(512, 3, 2)] * 4 + [(512,2,2)] * 2' --final-dim 256 --latent-vars 320 \
 		--latent-groups 2 --latent-temp '(2,0.5,0.999995)' --infonce --optimizer adam \
@@ -32,10 +32,10 @@ prepare-asr:
 
 finetune-asr:
 	python train.py $(OUT_DATA_DIR) --save-dir $(OUT_DATA_DIR)/finetuned-asr \
-		--num-workers 0 --update-freq 24 --sample-rate 8000 \
+		--fp16 --num-workers 6 --update-freq 24 --sample-rate 8000 \
 		--w2v-path $(PRETRAIN_MODEL_FP) \
 		--post-process letter --valid-subset valid --no-epoch-checkpoints --best-checkpoint-metric wer \
-		--max-update 80000 --sentence-avg --task audio_pretraining --arch wav2vec_ctc --w2v-path \
+		--max-update 80000 --sentence-avg --task audio_pretraining --arch wav2vec_ctc \
 		--labels ltr --apply-mask --mask-selection static --mask-other 0 --mask-length 10 --mask-prob 0.5 --layerdrop 0.1 \
 		--mask-channel-selection static --mask-channel-other 0 --mask-channel-length 64 --mask-channel-prob 0.5 --zero-infinity \
 		--feature-grad-mult 0.0 --freeze-finetune-updates 10000 --validate-after-updates 10000 --optimizer adam \

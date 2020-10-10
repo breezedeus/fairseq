@@ -13,7 +13,7 @@ prepare-asr:
 	python examples/wav2vec/libri_labels.py $(OUT_DATA_DIR)/valid.tsv --output-dir $(OUT_DATA_DIR) --output-name valid
 
 finetune-asr:
-	python train.py $(OUT_DATA_DIR) --save-dir finetuned-asr \
+	python train.py $(OUT_DATA_DIR) --save-dir $(OUT_DATA_DIR)/finetuned-asr \
 		--update-freq 24 \
 		--post-process letter --valid-subset valid --no-epoch-checkpoints --best-checkpoint-metric wer --num-workers 0 \
 		--max-update 80000 --sentence-avg --task audio_pretraining --arch wav2vec_ctc --w2v-path $(PRETRAIN_MODEL_FP) \
