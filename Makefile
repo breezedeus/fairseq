@@ -21,10 +21,10 @@ pretrain:
 		--max-tokens 1400000 --max-update 400000 --skip-invalid-size-inputs-valid-test --ddp-backend no_c10d
 
 prepare-asr:
-	python examples/wav2vec/holybell_labels.py $(OUT_DATA_DIR)/train.tsv --label-fp $(WAV_DIR)/train-ori.txt \
+	python examples/wav2vec/holybell_labels.py $(OUT_DATA_DIR)/train.tsv --label-fp $(WAV_DIR)/all-ori.txt \
 		--output-tsv $(OUT_DATA_DIR)/train-clean.tsv --output-dir $(OUT_DATA_DIR) --output-name train
 #	mv $(OUT_DATA_DIR)/train-clean.tsv $(OUT_DATA_DIR)/train.tsv
-	python examples/wav2vec/holybell_labels.py $(OUT_DATA_DIR)/valid.tsv --label-fp $(WAV_DIR)/dev-ori.txt \
+	python examples/wav2vec/holybell_labels.py $(OUT_DATA_DIR)/valid.tsv --label-fp $(WAV_DIR)/all-ori.txt \
 		--output-tsv $(OUT_DATA_DIR)/valid-clean.tsv --output-dir $(OUT_DATA_DIR) --output-name valid
 #	mv $(OUT_DATA_DIR)/valid-clean.tsv $(OUT_DATA_DIR)/valid.tsv
 	python examples/wav2vec/build_vocab.py --base-vocab-fp $(OUT_DATA_DIR)/base_vocab.txt \
