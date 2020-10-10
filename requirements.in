@@ -1,0 +1,8 @@
+
+#click==7.0
+#scikit-learn
+tqdm
+torch==1.6.0
+
+omegaconf
+hydra-core
