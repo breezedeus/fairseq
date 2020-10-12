@@ -32,7 +32,7 @@ prepare-asr:
 finetune-asr:
 	python train.py $(OUT_DATA_DIR) --save-dir $(OUT_DATA_DIR)/finetuned-asr \
 		--fp16 --num-workers 1 --update-freq 24 --sample-rate 8000 --reset-optimizer \
-		 --batch-size 64 --max-sample-size 160000 --min-sample-size 4000 \
+		--batch-size 64 --max-sample-size 160000 --min-sample-size 4000 \
 		--w2v-path $(PRETRAIN_MODEL_FP) --tensorboard-logdir runs \
 		--post-process letter --valid-subset valid --no-epoch-checkpoints --best-checkpoint-metric wer \
 		--max-update 80000 --sentence-avg --task audio_pretraining --arch wav2vec_ctc \

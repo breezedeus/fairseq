@@ -95,7 +95,7 @@ class AudioPretrainingTask(LegacyFairseqTask):
             manifest,
             sample_rate=self.args.sample_rate,
             max_sample_size=self.args.max_sample_size,
-            min_sample_size=self.args.max_sample_size,
+            min_sample_size=self.args.min_sample_size,
             min_length=self.args.min_sample_size,
             pad=self.args.labels is not None or self.args.enable_padding,
             normalize=self.args.normalize,
