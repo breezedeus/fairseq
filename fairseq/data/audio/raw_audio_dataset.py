@@ -80,6 +80,9 @@ class RawAudioDataset(FairseqDataset):
 
     def collater(self, samples):
         samples = [s for s in samples if s["source"] is not None]
+        if self.min_sample_size is not None:
+            samples = [s for s in samples if len(s['source']) >= self.min_sample_size]
+
         if len(samples) == 0:
             return {}
 
